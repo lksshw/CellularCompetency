@@ -6,7 +6,10 @@ Simulations to assess the role of Cellular-Competency in Evolution
 
 <img src='final_figures/caution_icon.png' alt='cautionicon' width="50"/>
 
-In progress. Cleaning up code. Eta: 15th August 2022
+Code is made available.
+
+Instructions on Usage in progress...
+ETA: 15th Aug
 
 
 
