@@ -89,54 +89,101 @@ class MixedFit():
 
 
 
-def plot(config):
+def plot(config, minorityFlag):
 
     # A global function to plot our results
     # a matrix of plots is constructed of size [number_of_cometencies x  mixture_ratios]
     # Plotting is possible only if simulated data is saved in the --savedir folder 
 
-    fig, axs = plt.subplots(len(config['BubbleLimits']), len(config['N_hw']), sharex=True, sharey=True, figsize=(10,13))
-    row, col = 0,0
+    if minorityFlag: 
 
-    preva_hw = np.load(os.path.join(SAVE_DIR, './hw.npy'))
-    preva_comp = np.load(os.path.join(SAVE_DIR, './comp.npy'))
+        # Plot for Minority Experiment
 
-    for nb, bubble in enumerate(config['BubbleLimits']):
+        try:
 
-        for idx, (i, j) in enumerate(zip(config['N_hw'], config['N_comp'])):
-            
-            mr_hw = np.mean(preva_hw[nb, idx, :, :], axis=1)
-            vr_hw = np.std(preva_hw[nb, idx, :, :], axis =1)/np.sqrt(config['Loops'])
+            preva_hw = np.load(os.path.join(SAVE_DIR, 'Exp2a-hw_prevalence.npy'))
+            preva_comp = np.load(os.path.join(SAVE_DIR, 'Exp2a-comp_prevalence.npy'))
 
-            mr_cmp = np.mean(preva_comp[nb, idx, :, :], axis = 1)
-            vr_cmp = np.std(preva_comp[nb, idx, :, :], axis = 1)/np.sqrt(config['Loops']) 
+        except FileNotFoundError:
 
-            htrace, = axs[row,col].plot(range(1, config['RUNS']+1), mr_hw)
-            axs[row, col].fill_between(range(1,config['RUNS']+1), mr_hw-1*vr_hw, mr_hw+1*vr_hw, alpha =0.2) 
+            print('Save file for minority-Experiment not found')
 
-            ctrace, = axs[row,col].plot(range(1, config['RUNS']+1), mr_cmp)
-            axs[row, col].fill_between(range(1, config['RUNS']+1), mr_cmp-1*vr_cmp, mr_cmp+1*vr_cmp, alpha =0.2) 
+        colors = ['crimson', 'olivedrab', 'teal', 'slateblue', 'orange', 'dimgrey'] 
 
-            axs[row, col].legend()
+        for bidx, b in enumerate(config['BubbleLimits']):
+            mr_hw = np.mean(preva_hw[bidx, :, :], axis=0)
+            vr_hw = np.std(preva_hw[bidx, : , :], axis =0)/np.sqrt(config['Loops'])
 
-            if col==0:
-                axs[row, col].set_ylabel('{} Swaps'.format(bubble))
+            plt.plot(np.arange(1, config['RUNS']+1), mr_hw, linestyle='--', linewidth=2.0, color=colors[bidx], label = 'Hardwired Population')
+            plt.fill_between(np.arange(1,config['RUNS']+1), mr_hw-1*vr_hw, mr_hw+1*vr_hw, alpha =0.2, color = colors[bidx]) 
 
-            if row==0: 
-                axs[row, col].set_title('{} HW - {} Competent'.format(i, j))
+            mr_cmp = np.mean(preva_comp[bidx, : , :], axis = 0)
+            vr_cmp = np.std(preva_comp[bidx, :, :], axis = 0)/np.sqrt(config['Loops'])
 
-            col +=1
+            plt.plot(np.arange(1, config['RUNS']+1), mr_cmp, linewidth=2.5, color=colors[bidx], label = 'Competent Population [Level {}]'.format(b))
+            plt.fill_between(np.arange(1, config['RUNS']+1), mr_cmp-1*vr_cmp, mr_cmp+1*vr_cmp, alpha =0.2, color = colors[bidx])
 
-        col = 0
-        row += 1
 
-    fig.subplots_adjust(top=0.9)
-    axs[0,1].legend([ctrace, htrace], ['Competent', 'Hardwired'], loc = 'upper center', bbox_to_anchor = (0.50, 1.35), fancybox =True, shadow = True)
+        plt.xlabel('Generation')
+        plt.ylabel("Percentage of Individuals (%)")
+        plt.tight_layout()
+        plt.legend(loc = 'lower right')
+        plt.savefig(os.path.join(SAVE_DIR, 'Exp2a'), dpi=300)
 
-    fig.supxlabel('Generation')
-    fig.supylabel('Percentage of Individuals (%)')
-    plt.tight_layout()
-    fig.savefig(os.path.join(SAVE_DIR, 'Exp2'), dpi=300)
+
+    else:
+
+        # Plot for Normal Mixed population experiement
+
+        fig, axs = plt.subplots(len(config['BubbleLimits']), len(config['N_hw']), sharex=True, sharey=True, figsize=(10,13))
+        row, col = 0,0
+
+        try:
+
+            preva_hw = np.load(os.path.join(SAVE_DIR, './hw.npy'))
+            preva_comp = np.load(os.path.join(SAVE_DIR, './comp.npy'))
+
+        except FileNotFoundError:
+
+            print('Save file not found for mixed population experiment')
+
+
+        for nb, bubble in enumerate(config['BubbleLimits']):
+
+            for idx, (i, j) in enumerate(zip(config['N_hw'], config['N_comp'])):
+                
+                mr_hw = np.mean(preva_hw[nb, idx, :, :], axis=1)
+                vr_hw = np.std(preva_hw[nb, idx, :, :], axis =1)/np.sqrt(config['Loops'])
+
+                mr_cmp = np.mean(preva_comp[nb, idx, :, :], axis = 1)
+                vr_cmp = np.std(preva_comp[nb, idx, :, :], axis = 1)/np.sqrt(config['Loops']) 
+
+                htrace, = axs[row,col].plot(range(1, config['RUNS']+1), mr_hw)
+                axs[row, col].fill_between(range(1,config['RUNS']+1), mr_hw-1*vr_hw, mr_hw+1*vr_hw, alpha =0.2) 
+
+                ctrace, = axs[row,col].plot(range(1, config['RUNS']+1), mr_cmp)
+                axs[row, col].fill_between(range(1, config['RUNS']+1), mr_cmp-1*vr_cmp, mr_cmp+1*vr_cmp, alpha =0.2) 
+
+                axs[row, col].legend()
+
+                if col==0:
+                    axs[row, col].set_ylabel('{} Swaps'.format(bubble))
+
+                if row==0: 
+                    axs[row, col].set_title('{} HW - {} Competent'.format(i, j))
+
+                col +=1
+
+            col = 0
+            row += 1
+
+        fig.subplots_adjust(top=0.9)
+        axs[0,1].legend([ctrace, htrace], ['Competent', 'Hardwired'], loc = 'upper center', bbox_to_anchor = (0.50, 1.35), fancybox =True, shadow = True)
+
+        fig.supxlabel('Generation')
+        fig.supylabel('Percentage of Individuals (%)')
+        plt.tight_layout()
+        fig.savefig(os.path.join(SAVE_DIR, 'Exp2'), dpi=300)
 
 if __name__ == "__main__":
 
@@ -144,6 +191,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Mixed population Experiment')
     parser.add_argument('--simulate', type=bool, default=False, help='Set True to run the experiment from scratch. If False, a plot is produced from saved data')
+    parser.add_argument('--minorityExp', type =bool, default = False, help='Run the experiment with competent individuals being a minority (20% of the population) with different competency levels (check hyperparameters file for competency levels)')
     parser.add_argument('--hfile', type = str, default='./hyperparameters.json')
     parser.add_argument('--savedir', type = str, default='./MixedPopulationResults/', help = 'path to folder containing saved data (if plot), else destination to save data')
 
@@ -153,67 +201,109 @@ if __name__ == "__main__":
 
     HYP_FILE_PATH = args.hfile
     SAVE_DIR = args.savedir
-    EXP_TYPE = 'mixed_population'
+
+    if args.minorityExp:
+        EXP_TYPE = 'mixed_population_minority'
+
+    else:
+        EXP_TYPE = 'mixed_population'
 
     with open(HYP_FILE_PATH, 'r') as f:
         config_data = json.load(f)
 
     config = config_data[EXP_TYPE]
 
+    # We can run two types of experiments: 1. The original mixed population experiment, where individuals are mixed in different ratios and different competency levels.
+    # 2. A single mixture proportion (competent 20%, hardwired 80%) is used. Different competency levels are compared to check at which level competent individuals dominate
+
 
     if args.simulate:
 
-        # Sanity check to ensure that the sum of N_hw + N_competent = Number of total organisms, in each of the mixture cases (see hyperparameter.json)    
+        if args.minorityExp: # Minority experiment 2
 
-        for i, j in zip(config['N_hw'], config['N_comp']):
-            if i+j != config['N_organisms']:
-                raise Exception("Number of Hardwired and Competent don't match the population size. Check your hyperparameters")
+            preva_hw = np.zeros((len(config['BubbleLimits']),config['Loops'], config['RUNS']))
+            preva_comp = np.zeros((len(config['BubbleLimits']), config['Loops'], config['RUNS']))
 
+            for bidx, b in enumerate(config['BubbleLimits']):
 
-        preva_hw = np.zeros((len(config['BubbleLimits']), len(config['N_hw']), config['RUNS'], config['Loops']))        # create array to store simulations for every competency level, every mixture ratio, and every repeat
-        preva_comp = np.zeros((len(config['BubbleLimits']), len(config['N_comp']), config['RUNS'], config['Loops']))    # create array to store simulations for every competency level, every mixture ratio, and every repeat
+                print('Running for Competency Level {}\n'.format(config['BubbleLimits'][bidx]))
 
-        print('Hyperparameters look good \n Starting Mixed Experiment...')
-
-        # The order in which we store results is: competency_level > all mixture ratios > all repeats
-
-        for bn, bubble in enumerate(config['BubbleLimits']):
-
-            for idx, (i, j) in enumerate(zip(config['N_hw'], config['N_comp'])):
-
-                print('-'*10)
-                print('Running: {} HW and {} Competent individuals (Competency: {}) mixed together'.format(i, j, bubble))
-                print('-'*10)
+                config['BubbleLimit'] = b
+                cfs = HelperFuncs(config)
+                run1 = MixedFit(config, cfs, n_hw = config['N_hw'], n_comp = config['N_comp'])
 
                 for r in range(config['Loops']):
 
-                    config['BubbleLimit'] = bubble
+                    _, prevalence_counts  = run1.run_ga()
 
-                    cfs = HelperFuncs(config)
+                    preva_hw[bidx, r] = [hw for hw, _ in prevalence_counts]
+                    preva_comp[bidx, r] = [comp for _, comp in prevalence_counts]
 
-                    # initalize an instance of the class with correct settings
-                    run1 = MixedFit(config, cfs, i, j)
+            print('Saving....\n')
 
-                    # run genetic algorithm
-                    te_buff, all_cnts = run1.run_ga()
+            if not os.path.exists(SAVE_DIR):
+                os.makedirs(SAVE_DIR)
 
-                    # store results
+            np.save(os.path.join(SAVE_DIR, 'Exp2a-hw_prevalence'), preva_hw)
+            np.save(os.path.join(SAVE_DIR, 'Exp2a-comp_prevalence'), preva_comp)
 
-                    preva_hw[bn, idx, :, r] = [hw for hw, _ in all_cnts]
-                    preva_comp[bn, idx, :, r] = [comp for _, comp in all_cnts]
+            print('Plotting...')
+            plot(config, args.minorityFlag)
 
-        if not os.path.exists(SAVE_DIR):
-            os.makedirs(SAVE_DIR)
+        else:
+            # Minority Experiment 1
+            # Sanity check to ensure that the sum of N_hw + N_competent = Number of total organisms, in each of the mixture cases (see hyperparameter.json)    
 
-        # save results in .npy files
-        np.save(os.path.join(SAVE_DIR, './hw'), preva_hw)
-        np.save(os.path.join(SAVE_DIR, './comp'), preva_comp)
+            for i, j in zip(config['N_hw'], config['N_comp']):
+                if i+j != config['N_organisms']:
+                    raise Exception("Number of Hardwired and Competent don't match the population size. Check your hyperparameters")
 
-        #plot 
-        plot(config)
+
+            preva_hw = np.zeros((len(config['BubbleLimits']), len(config['N_hw']), config['RUNS'], config['Loops']))        # create array to store simulations for every competency level, every mixture ratio, and every repeat
+            preva_comp = np.zeros((len(config['BubbleLimits']), len(config['N_comp']), config['RUNS'], config['Loops']))    # create array to store simulations for every competency level, every mixture ratio, and every repeat
+
+            print('Hyperparameters look good \n Starting Mixed Experiment...')
+
+            # The order in which we store results is: competency_level > all mixture ratios > all repeats
+
+            for bn, bubble in enumerate(config['BubbleLimits']):
+
+                for idx, (i, j) in enumerate(zip(config['N_hw'], config['N_comp'])):
+
+                    print('-'*10)
+                    print('Running: {} HW and {} Competent individuals (Competency: {}) mixed together'.format(i, j, bubble))
+                    print('-'*10)
+
+                    for r in range(config['Loops']):
+
+                        config['BubbleLimit'] = bubble
+
+                        cfs = HelperFuncs(config)
+
+                        # initalize an instance of the class with correct settings
+                        run1 = MixedFit(config, cfs, i, j)
+
+                        # run genetic algorithm
+                        te_buff, all_cnts = run1.run_ga()
+
+                        # store results
+
+                        preva_hw[bn, idx, :, r] = [hw for hw, _ in all_cnts]
+                        preva_comp[bn, idx, :, r] = [comp for _, comp in all_cnts]
+
+            if not os.path.exists(SAVE_DIR):
+                os.makedirs(SAVE_DIR)
+
+            # save results in .npy files
+            np.save(os.path.join(SAVE_DIR, './hw'), preva_hw)
+            np.save(os.path.join(SAVE_DIR, './comp'), preva_comp)
+
+            #plot 
+            print('Plotting...')
+            plot(config, args.minorityExp)
 
     else:
 
         #plot
         print('Plotting...')
-        plot(config)
+        plot(config, args.minorityExp)
