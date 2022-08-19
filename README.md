@@ -1,5 +1,4 @@
 ## Cellular Competency
----
 
 This repository contains experimental simulations from the paper: "oooo". Each experiment is setup to probe the disparity between genotypes and phenotypes as a "competent population" undergoes evolution: The genetic code which instructs development is NOT what is eventually developed. Evolution skews and redirects development to an optimum different from that defined by genetic code. Our paper seeks to: 1. Check if such a disparity actually occurs in simulation, and 2. What the nature of such a disparity is. 
 
@@ -12,7 +11,6 @@ In Experiment 2, we mix hardwired and competent individuals together into a sing
 In Experiment 3, we make competency evolvable. Previous experiments involved a fixed level of competency; now, we let evolution decide the magnitude of competency. We check to see the effects competency has on the genome and make observations about its nature.
 
 ## Requirements
----
 
 * Numpy
 * Matplotlib
@@ -21,7 +19,6 @@ In Experiment 3, we make competency evolvable. Previous experiments involved a f
 Nothing fancy.
 
 ## Simulating
----
 
 You can either run simulations with our settings or you can use your own. The "settings" I'm refering to are hyperparameter values all of which are specified in the <a href='../hyperparameters.json'>Hyperparameters file</a>.
 <br>
@@ -56,7 +53,6 @@ python3 all_tests/Exp3-EvolvableCompetency.py --plotType "frequency"
 ```
 
 ### Reproduction
----
 
 We provide pre-saved simulation runs for each experiment so that you can reproduce all our figures.
 
