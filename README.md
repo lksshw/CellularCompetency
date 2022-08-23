@@ -21,7 +21,7 @@ Nothing fancy.
 
 ## Simulating
 
-You can either run simulations with our settings or you can use your own. The "settings" I'm refering to are hyperparameter values; all of which are specified in the <a href='../hyperparameters.json'>Hyperparameters file</a>.
+You can either run simulations with our settings or you can use your own. The "settings" I'm refering to are hyperparameter values; all of which are specified in the <a href='hyperparameters.json'>Hyperparameters file</a>.
 <br>
 Well then, to simulate Experiment 1, you run:
 
