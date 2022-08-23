@@ -1,10 +1,11 @@
 ## Cellular Competency
 
-This repository contains experimental simulations from the paper: "oooo". Each experiment is setup to probe the disparity between genotypes and phenotypes as a "competent population" undergoes evolution: The genetic code which instructs development is NOT what is eventually developed. Evolution skews and redirects development to an optimum different from that defined by genetic code. Our paper seeks to: 1. Check if such a disparity actually occurs in simulation, and 2. What the nature of such a disparity is. 
+This repository contains experimental simulations from the paper: "Competency of the Developmental Layer Alters Evolutionary Dynamics in an Artificial Embryogeny Model of Morphogenesis". 
+Each experiment is setup to probe the disparity between genotypes and phenotypes as a "competent population" undergoes evolution: The genetic code which instructs development is NOT what is eventually developed. Evolution skews and redirects development to an optimum different from that defined by genetic code. Our paper seeks to: 1. Check if such a disparity actually occurs in simulation, and 2. What the nature of such a disparity is. 
 
-A "competent population" is one wherein the cells of an individual have the capability to solve tasks in their local environment. In contrast an "incompetent" or "Hardwired population" (what we refer to in the paper) is one where cell's of an individual have no local task-solving capability.
+A "competent population" is one wherein the cells of an individual have the capability to solve tasks in their local environment. In contrast, an "incompetent" or "Hardwired population" (what we refer to in the paper) is one where cell's of an individual have no local task-solving capability.
 
-In Experiment 1, we pit the "hardwired" population against the "competent" population to check if the Competent population has better fitness.
+In Experiment 1, we pit the "hardwired" population against the "competent" population to check if the Competent population perform better.
 
 In Experiment 2, we mix hardwired and competent individuals together into a single populaiton and evolve them together. We check to see if and when the competents dominate the hardwired. 
 
@@ -20,7 +21,7 @@ Nothing fancy.
 
 ## Simulating
 
-You can either run simulations with our settings or you can use your own. The "settings" I'm refering to are hyperparameter values all of which are specified in the <a href='../hyperparameters.json'>Hyperparameters file</a>.
+You can either run simulations with our settings or you can use your own. The "settings" I'm refering to are hyperparameter values; all of which are specified in the <a href='../hyperparameters.json'>Hyperparameters file</a>.
 <br>
 Well then, to simulate Experiment 1, you run:
 
