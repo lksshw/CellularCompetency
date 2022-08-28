@@ -100,13 +100,11 @@ def plot(config, minorityFlag):
         # Plot for Minority Experiment
 
         try:
-
             preva_hw = np.load(os.path.join(SAVE_DIR, 'Exp2a-hw_prevalence.npy'))
             preva_comp = np.load(os.path.join(SAVE_DIR, 'Exp2a-comp_prevalence.npy'))
 
         except FileNotFoundError:
-
-            print('Save file for minority-Experiment not found')
+            raise Exception('Save file for minority-Experiment not found')
 
         colors = ['crimson', 'olivedrab', 'teal', 'slateblue', 'orange', 'dimgrey'] 
 
@@ -139,13 +137,11 @@ def plot(config, minorityFlag):
         row, col = 0,0
 
         try:
-
             preva_hw = np.load(os.path.join(SAVE_DIR, './hw.npy'))
             preva_comp = np.load(os.path.join(SAVE_DIR, './comp.npy'))
 
         except FileNotFoundError:
-
-            print('Save file not found for mixed population experiment')
+            raise Exception('Save file not found for mixed population experiment')
 
 
         for nb, bubble in enumerate(config['BubbleLimits']):
@@ -248,7 +244,7 @@ if __name__ == "__main__":
             np.save(os.path.join(SAVE_DIR, 'Exp2a-comp_prevalence'), preva_comp)
 
             print('Plotting...')
-            plot(config, args.minorityFlag)
+            plot(config, args.minorityExp)
 
         else:
             # Minority Experiment 1
