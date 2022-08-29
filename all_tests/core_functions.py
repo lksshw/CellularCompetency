@@ -93,7 +93,7 @@ class HelperFuncs():
             # update the not swapped counter if 1. a swap is not possible(here) and 2. a swap leads to lower fitness (else statement above)
             notswapped +=1
 
-          if (counter >=swapsToUse) or (notswapped == self.config['SIZE']-1):
+          if (counter >=swapsToUse) or (notswapped >= self.config['SIZE']-1):
             #while swapping, if any counter is at it's limit, break out of the for loop, this will also trigger a break in the while loop
             break
 
@@ -143,7 +143,7 @@ class HelperFuncs():
           else:
             notswapped +=1
 
-          if (counter >=swapsToUse) or (notswapped == self.config['SIZE']-1):
+          if (counter >=swapsToUse) or (notswapped >= self.config['SIZE']-1):
             break
 
     individuals = np.append(individuals, np.array(genes).reshape(-1,1), axis = 1) #append the respective genes back to the swapped arrays
