@@ -1,8 +1,8 @@
 #!/usr/env/bin python3
 
 
-# Functions to run every experiment. 
-# Create an instance of this module by passing a hyperparameters file. 
+# Functions to run every experiment.
+# Create an instance of this module by passing a hyperparameters file.
 
 import math
 import json
@@ -15,7 +15,7 @@ class HelperFuncs():
     self.config = config
     self.ncr = math.factorial(self.config['SIZE']) / (math.factorial(self.config['SIZE']-2)* 2) # calculates the number of possible ways of selecting two different numbers from an array of specific size. All that's being computed is NC2.
 
-  def fitness(self, o):     
+  def fitness(self, o):
     # Calculates the fitness of a single individual/array
     # Input: A single array of shape (,SIZE)
     # returns: the normalized fitness and the number of swaps required to reach maximum fitness
@@ -61,7 +61,7 @@ class HelperFuncs():
 
       _, total_swaps = self.fitness(individuals[n]) # gets the fitness of an array + the number of available swaps
 
-      defecit_swaps = total_swaps - self.config['BubbleLimit']  # check if there are enough swaps availabe to swap 
+      defecit_swaps = total_swaps - self.config['BubbleLimit']  # check if there are enough swaps availabe to swap
 
       if defecit_swaps >0:  #if there are, then proceed to swap as many times as the user provides through the "Bubble Limit" hyperparameter
         swapsToUse = self.config['BubbleLimit']
@@ -77,7 +77,7 @@ class HelperFuncs():
 
         poses_touse = np.random.choice(np.arange(self.config['SIZE']-1), self.config['SIZE']-1 , replace = False) # randomly pick a position to swap. Basically instead of sequentially moving from one left to right, just pick random positions (uniquely)
 
-        for pos in poses_touse: 
+        for pos in poses_touse:
           #start swapping
           if (individuals[n][pos] > individuals[n][pos+1]):
             # if a value at pos x is greater than value at pos x+1 then there is an opportunity to swap
@@ -97,10 +97,10 @@ class HelperFuncs():
             #while swapping, if any counter is at it's limit, break out of the for loop, this will also trigger a break in the while loop
             break
 
-    return individuals 
+    return individuals
 
 
-  
+
   def bubble_sortevolve(self, orgs):
     # Identical to the normal bubble_sort function, except that each individual has a competency gene value at the last index position
 
@@ -122,20 +122,20 @@ class HelperFuncs():
       notswapped = 0
 
       while counter < swapsToUse and notswapped < self.config['SIZE']-1:
-        notswapped = 0  
+        notswapped = 0
 
-        poses_touse = np.random.choice(np.arange(self.config['SIZE']-1), self.config['SIZE']-1 , replace = False) 
+        poses_touse = np.random.choice(np.arange(self.config['SIZE']-1), self.config['SIZE']-1 , replace = False)
 
-        for pos in poses_touse: 
+        for pos in poses_touse:
           #start swapping
           if (individuals[n][pos] > individuals[n][pos+1]):
 
-            mod_ind, feasible = self.check_feasibility(individuals[n], pos) 
+            mod_ind, feasible = self.check_feasibility(individuals[n], pos)
 
             if feasible:
 
               individuals[n] = mod_ind
-              counter +=1 
+              counter +=1
 
             else:
               notswapped +=1
@@ -148,7 +148,7 @@ class HelperFuncs():
 
     individuals = np.append(individuals, np.array(genes).reshape(-1,1), axis = 1) #append the respective genes back to the swapped arrays
 
-    return individuals 
+    return individuals
 
 
   def selection(self, ory, fi, noevolution=False):
@@ -162,9 +162,9 @@ class HelperFuncs():
     fit_index = {k: i for k, i in enumerate(fitne)} # get a mapping of the position of the individual in the population to it's fitness value
     fitness_organisms = {k: v for k, v in sorted(fit_index.items(), key=lambda item: item[1], reverse=True)}  #sort the fitnesees in descending order and get a mapping of their values to their position in the population
     orgs_keys = [k for k,v in fitness_organisms.items()]  #get position of the individuals in the population from the above sorted dict
-    orgs_vals = list(fitness_organisms.values()) # get the corresponding fitness values 
+    orgs_vals = list(fitness_organisms.values()) # get the corresponding fitness values
 
-    new_orgs_keys = orgs_keys[: round(0.1*self.config['N_organisms'])] #get the top10 individual positions 
+    new_orgs_keys = orgs_keys[: round(0.1*self.config['N_organisms'])] #get the top10 individual positions
     new_orgs_vals = orgs_vals[: round(0.1*self.config['N_organisms'])] #get the top10 individual fitnesses
 
     if noevolution: #ignore, this is a test condition
@@ -179,14 +179,14 @@ class HelperFuncs():
 
   def combined_selection(self, ory):
     # Function to select the best individuals from a MIXED population (containing both hardwired and competent individuals)
-    # Inputs: The mixed population 
+    # Inputs: The mixed population
 
     organisms = ory.copy()
     pseudo_organisms = np.array([i[1:] if i[0] == -2 else self.bubble_sort(i[1:].reshape(1,-1)).reshape(-1) for i in organisms]) # HW individuals have an indentifier of "-2" and Competent individuals an indentifier of "-1" at index position 0, we only reorganize the competent individuals and store them in an array. This is just done to get the phenotypic fitness of competent and the genomic fitness of HW.
 
     fitnessess = [self.fitness(j)[0] for j in pseudo_organisms] # Calulate the fitness of each individual in the array created above
 
-    return(self.selection(ory, fitnessess)) # Carry out normal selection and return the top10% of the best individuals. 
+    return(self.selection(ory, fitnessess)) # Carry out normal selection and return the top10% of the best individuals.
 
   def crossover_mutation(self, organis):
     # Function to reproduce individuals in a population. After selection, population size is reduced. This function mimics reproduction to repopulate the population.
@@ -225,11 +225,11 @@ class HelperFuncs():
 
     organisms = organi.copy()
 
-    for i in range(len(organisms)):  
-      if np.random.rand(1) > self.config['Mutation_Probability']:  # Mutate only if above a certain probability
-        organisms[i][np.random.randint(low = 0, high =self.config['SIZE'])] = np.random.randint(low = self.config['LOW'], high=self.config['HIGH']) # Point Mutate to a value between 0 and array_size 
+    for i in range(len(organisms)):
+      if np.random.rand(1) <= self.config['Mutation_Probability']:  # Mutate only if above a certain probability
+        organisms[i][np.random.randint(low = 0, high =self.config['SIZE'])] = np.random.randint(low = self.config['LOW'], high=self.config['HIGH']) # Point Mutate to a value between 0 and array_size
 
-    return organisms     
+    return organisms
 
 
   def mutation_flip_incl_gene(self, organi, max_val_to_mutate):
@@ -239,7 +239,7 @@ class HelperFuncs():
     organisms = organi.copy()
 
     for i in range(len(organisms)):
-      if np.random.rand(1) > self.config['Mutation_Probability']:  # Mutate once in a while only
+      if np.random.rand(1) <= self.config['Mutation_Probability']:  # Mutate once in a while only
         mut_pos = np.random.randint(low = 0, high= self.config['SIZE']+1) # Get the index position to mutate
         if mut_pos == 50:
           subst_val = np.random.randint(low = self.config['LOW'], high=max_val_to_mutate) # If the index belongs to the funcitonal gene, then mutate between 0 and "max_val_to_mutate"
@@ -248,7 +248,7 @@ class HelperFuncs():
 
         organisms[i][mut_pos] = subst_val # carry out the point mutation
 
-    return organisms         
+    return organisms
 
 
 
