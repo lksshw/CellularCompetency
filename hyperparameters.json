@@ -7,22 +7,22 @@
         "N_organisms" : 100,
         "RUNS" : 1000,
         "Mutation_Probability" : 0.6,
-        "ExpFitness": "True",
+        "ExpFitness": "False",
         "BubbleLimits": [20, 100, 400],
-        "Loops": 10
+        "Loops": 300
                         },
 
     "mixed_population" : {
         "LOW" :1,
         "HIGH":51,
-        "N_hw": [20, 100, 180],
-        "N_comp": [180, 100, 20],
+        "N_hw": [140, 160, 180, 195],
+        "N_comp": [60, 40, 20, 5],
         "N_organisms": 200,
         "SIZE" : 50,
-        "RUNS": 20,
+        "RUNS": 50,
         "Mutation_Probability" : 0.6,
-        "ExpFitness": "True",
-        "BubbleLimits": [20, 25, 30, 35, 40, 45] ,
+        "ExpFitness": "False",
+        "BubbleLimits": [25, 40, 50, 70, 95] ,
         "Loops": 20
     },
 
@@ -34,7 +34,7 @@
         "N_comp": 20,
         "N_organisms": 200,
         "SIZE" : 50,
-        "RUNS": 15,
+        "RUNS": 100,
         "Mutation_Probability" : 0.6,
         "ExpFitness": "True",
         "BubbleLimits": [10, 20, 50, 100, 200, 400],

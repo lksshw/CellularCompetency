@@ -60,8 +60,8 @@ class MixedFit():
 
     def run_ga(self):
 
-        # main function running the genetic algorithm 
-        # returns: two lists: one tracking the fitnessess of both individuals over all generations and the other tracking their counts over all generations 
+        # main function running the genetic algorithm
+        # returns: two lists: one tracking the fitnessess of both individuals over all generations and the other tracking their counts over all generations
 
         self.initialize() # intialize the mixture population
 
@@ -76,12 +76,12 @@ class MixedFit():
 
             self.count_orgs() # count
             self.counts.append((self.hw_count, self.comp_count)) # store count in the tracker
-        
+
             fittest_organisms, _ = self.cfs.combined_selection(self.total_orgs)  # Selection: hw based on hw fitness, competent based on competent fitness
-            new_population = self.cfs.crossover_mutation(fittest_organisms)      # Cross-mutate
+            new_population = self.cfs.crossover_withoutInterbreeding(fittest_organisms)      # Cross-mutate
             mutated_population = self.cfs.mutation_flip(new_population)          # Point mutate
 
-            self.total_orgs = mutated_population.copy()  # set the muated population as the new population  
+            self.total_orgs = mutated_population.copy()  # set the muated population as the new population
 
             generation +=1  # increment generations elapsed
 
@@ -93,9 +93,9 @@ def plot(config, minorityFlag):
 
     # A global function to plot our results
     # a matrix of plots is constructed of size [number_of_cometencies x  mixture_ratios]
-    # Plotting is possible only if simulated data is saved in the --savedir folder 
+    # Plotting is possible only if simulated data is saved in the --savedir folder
 
-    if minorityFlag: 
+    if minorityFlag:
 
         # Plot for Minority Experiment
 
@@ -106,14 +106,14 @@ def plot(config, minorityFlag):
         except FileNotFoundError:
             raise Exception('Save file for minority-Experiment not found')
 
-        colors = ['crimson', 'olivedrab', 'teal', 'slateblue', 'orange', 'dimgrey'] 
+        colors = ['crimson', 'olivedrab', 'teal', 'slateblue', 'orange', 'dimgrey']
 
         for bidx, b in enumerate(config['BubbleLimits']):
             mr_hw = np.mean(preva_hw[bidx, :, :], axis=0)
             vr_hw = np.std(preva_hw[bidx, : , :], axis =0)/np.sqrt(config['Loops'])
 
             plt.plot(np.arange(1, config['RUNS']+1), mr_hw, linestyle='--', linewidth=2.0, color=colors[bidx], label = 'Hardwired Population')
-            plt.fill_between(np.arange(1,config['RUNS']+1), mr_hw-1*vr_hw, mr_hw+1*vr_hw, alpha =0.2, color = colors[bidx]) 
+            plt.fill_between(np.arange(1,config['RUNS']+1), mr_hw-1*vr_hw, mr_hw+1*vr_hw, alpha =0.2, color = colors[bidx])
 
             mr_cmp = np.mean(preva_comp[bidx, : , :], axis = 0)
             vr_cmp = np.std(preva_comp[bidx, :, :], axis = 0)/np.sqrt(config['Loops'])
@@ -147,25 +147,25 @@ def plot(config, minorityFlag):
         for nb, bubble in enumerate(config['BubbleLimits']):
 
             for idx, (i, j) in enumerate(zip(config['N_hw'], config['N_comp'])):
-                
+
                 mr_hw = np.mean(preva_hw[nb, idx, :, :], axis=1)
                 vr_hw = np.std(preva_hw[nb, idx, :, :], axis =1)/np.sqrt(config['Loops'])
 
                 mr_cmp = np.mean(preva_comp[nb, idx, :, :], axis = 1)
-                vr_cmp = np.std(preva_comp[nb, idx, :, :], axis = 1)/np.sqrt(config['Loops']) 
+                vr_cmp = np.std(preva_comp[nb, idx, :, :], axis = 1)/np.sqrt(config['Loops'])
 
                 htrace, = axs[row,col].plot(range(1, config['RUNS']+1), mr_hw)
-                axs[row, col].fill_between(range(1,config['RUNS']+1), mr_hw-1*vr_hw, mr_hw+1*vr_hw, alpha =0.2) 
+                axs[row, col].fill_between(range(1,config['RUNS']+1), mr_hw-1*vr_hw, mr_hw+1*vr_hw, alpha =0.2)
 
                 ctrace, = axs[row,col].plot(range(1, config['RUNS']+1), mr_cmp)
-                axs[row, col].fill_between(range(1, config['RUNS']+1), mr_cmp-1*vr_cmp, mr_cmp+1*vr_cmp, alpha =0.2) 
+                axs[row, col].fill_between(range(1, config['RUNS']+1), mr_cmp-1*vr_cmp, mr_cmp+1*vr_cmp, alpha =0.2)
 
                 axs[row, col].legend()
 
                 if col==0:
                     axs[row, col].set_ylabel('{} Swaps'.format(bubble))
 
-                if row==0: 
+                if row==0:
                     axs[row, col].set_title('{} HW - {} Competent'.format(i, j))
 
                 col +=1
@@ -248,7 +248,7 @@ if __name__ == "__main__":
 
         else:
             # Minority Experiment 1
-            # Sanity check to ensure that the sum of N_hw + N_competent = Number of total organisms, in each of the mixture cases (see hyperparameter.json)    
+            # Sanity check to ensure that the sum of N_hw + N_competent = Number of total organisms, in each of the mixture cases (see hyperparameter.json)
 
             for i, j in zip(config['N_hw'], config['N_comp']):
                 if i+j != config['N_organisms']:
@@ -294,7 +294,7 @@ if __name__ == "__main__":
             np.save(os.path.join(SAVE_DIR, './hw'), preva_hw)
             np.save(os.path.join(SAVE_DIR, './comp'), preva_comp)
 
-            #plot 
+            #plot
             print('Plotting...')
             plot(config, args.minorityExp)
 

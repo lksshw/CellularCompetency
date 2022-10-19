@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 import json
 import argparse
@@ -31,11 +33,14 @@ def run_ga (config, HW=True):
     # Initialize arrays to track fitnessess and store populations
 
     GTracker = [] # Track the best genotypic fitness in each generation
-    CTracker = [] # Track the best phenotypic Fitness in each generation 
+    CTracker = [] # Track the best phenotypic Fitness in each generation
 
     genomic_collection = {} # Map each generation to the genome of a population
     phenotypic_collection = {} # Map each generation to the post-swapped genome(Phenotype) of a population
 
+    HWFitness = [fcs.fitness(org)[0] for org in init_population] # Get all Fitnesses
+    GTracker.append(np.max(HWFitness)) # Store the best genotypic fitness
+    CTracker.append(np.max(HWFitness))
 
     for g in range(1, config['RUNS']+1):
         # Iterations of the genetic algorithm
@@ -44,15 +49,15 @@ def run_ga (config, HW=True):
         GTracker.append(np.max(HWFitness)) # Store the best genotypic fitness
 
         genomic_collection[g] = init_population.copy() # Store genomes of a population (regardless of HW or Competent) for a particular generation
- 
+
         if HW: # Do only if HW populaiton is set
 
-            SPopulation, _ = fcs.selection(init_population, HWFitness) # Carry out Selection based on HW Fitnessess 
+            SPopulation, _ = fcs.selection(init_population, HWFitness) # Carry out Selection based on HW Fitnessess
 
         else: # Do only if Competent Population is set
 
             C_population = fcs.bubble_sort(init_population) # Allow Cells Swap their values
-            
+
             phenotypic_collection[g] = C_population.copy() # Store the Post-swapped Genomes(Phenotype) of a Population for a particular generation
 
             CFitness = [fcs.fitness(org)[0] for org in C_population] # Get Fitness of all individuals
@@ -75,9 +80,11 @@ def run_ga (config, HW=True):
 
 
 def plot_all(bubbles, N_repeats, N_generations = 1000):
+    nval = 3
+    z = 1.960       # 95% CI
 
     # Main plotting function
-    # Inputs: Configuration dict, Number of repeats to plot, Number of generations to plot 
+    # Inputs: Configuration dict, Number of repeats to plot, Number of generations to plot
     # Plotting is possible only if Simulated data is present in --save_dir
 
     # Load saved data
@@ -86,39 +93,52 @@ def plot_all(bubbles, N_repeats, N_generations = 1000):
     comp_phenotype_runs = np.load(os.path.join(SAVE_DIR, 'compPhenotypeBubbleSort.npy'))
 
     hw_runs = hw_runs[:N_repeats, :N_generations]
-    comp_genome_runs = comp_genome_runs[:, :N_repeats, :N_generations] 
+    comp_genome_runs = comp_genome_runs[:, :N_repeats, :N_generations]
     comp_phenotype_runs = comp_phenotype_runs[:, :N_repeats, :N_generations]
 
     # Plot hardwired fitnesses
 
     m_hw = np.mean(hw_runs, axis = 0)
-    var_hw = np.std(hw_runs, axis = 0)/np.sqrt(config['Loops'])
-    p1,  = plt.plot(range(1, len(m_hw)+1), m_hw, label='Hardwired Genotypic Fitness [No Swaps]', linestyle='--', color='black', linewidth=1.5)
-    plt.fill_between(range(1, len(m_hw)+1), m_hw-2*var_hw, m_hw+2*var_hw, alpha = 0.2, color = 'black')
+    CI_hw = z*(np.std(hw_runs, axis = 0)/np.sqrt(config['Loops']))
+
+    m_hw_logscale = -np.log10(1+10**(-nval) - m_hw) / nval
+    CI_hw_logscale = -np.log10(1+10**(-nval) - CI_hw) /nval
+
+    p1,  = plt.plot(range(1, len(m_hw_logscale)+1), m_hw_logscale, label='Hardwired Genotypic Fitness [No Swaps]', linestyle='--', color='black', linewidth=1.5)
+    plt.fill_between(range(1, len(m_hw_logscale)+1), m_hw_logscale-CI_hw_logscale, m_hw_logscale+CI_hw_logscale, alpha = 0.2, color = 'black')
 
 
     lvls = [0.65, 0.75,  0.80, 0.9, 0.97, 1.0] # Check when each fitness curve reaches a particular threshold
 
-    for l in lvls: 
+    for l in lvls:
         hw_time = N_generations - len(m_hw[m_hw>=l])
         print("Hw reaches {} at {}".format(l, hw_time))
 
     # Plot Genotypic and Phenotypic fitnessess of Competent populations
 
     for b in range(len(bubbles)):
+
         m_comp = np.mean(comp_genome_runs[b, : , :], axis = 0)
-        var_comp = np.std(comp_genome_runs[b, :, :], axis = 0)/np.sqrt(config['Loops'])
-        p1, = plt.plot(range(1, len(m_comp)+1), m_comp, label = 'Competent Genotypic Fitness [{} Swaps]'.format(bubbles[b]), linestyle='--',  color =color_sets[b])
-        plt.fill_between(range(1, len(m_comp)+1), m_comp-2*var_comp, m_comp + 2*var_comp, alpha = 0.2, color = color_sets[b])
+        CI_comp = z*(np.std(comp_genome_runs[b, :, :], axis = 0)/np.sqrt(config['Loops']))
+
+        m_comp_logscale = -np.log10(1+10**(-nval) - m_comp) / nval
+        CI_comp_logscale = -np.log10(1+10**(-nval) - CI_comp) /nval
+
+        p1, = plt.plot(range(0, len(m_comp_logscale)), m_comp_logscale, label = 'Competent Genotypic Fitness [{} Swaps]'.format(bubbles[b]), linestyle='--',  color =color_sets[b])
+        plt.fill_between(range(0, len(m_comp_logscale)), m_comp_logscale - CI_comp_logscale, m_comp_logscale + CI_comp_logscale, alpha = 0.2, color = color_sets[b])
 
         m_comp = np.mean(comp_phenotype_runs[b, : , :], axis = 0)
-        var_comp = np.std(comp_phenotype_runs[b, :, :], axis = 0)/np.sqrt(config['Loops'])
-        p1, = plt.plot(range(1, len(m_comp)+1), m_comp, label = 'Competent Phenotypic Fitness [{} Swaps]'.format(bubbles[b]), color = color_sets[b])
-        plt.fill_between(range(1, len(m_comp)+1), m_comp-2*var_comp, m_comp + 2*var_comp, alpha = 0.2, color = color_sets[b])
+        CI_comp = np.std(comp_phenotype_runs[b, :, :], axis = 0)/np.sqrt(config['Loops'])
+
+        m_comp_logscale = -np.log10(1+10**(-nval) - m_comp) / nval
+        CI_comp_logscale = -np.log10(1+10**(-nval) - CI_comp) /nval
+
+        p1, = plt.plot(range(0, len(m_comp_logscale)), m_comp_logscale, label = 'Competent Phenotypic Fitness [{} Swaps]'.format(bubbles[b]), color = color_sets[b])
+        plt.fill_between(range(0, len(m_comp_logscale)), m_comp_logscale-CI_comp_logscale, m_comp_logscale + CI_comp_logscale, alpha = 0.2, color = color_sets[b])
         print('*'*10)
         print('\n')
 
-        for l in lvls: 
+        for l in lvls:
             cmp_time = N_generations - len(m_comp[m_comp>=l])
             print("comp({} bubbles) reaches {} at {}".format(bubbles[b], l, cmp_time+1))
 
@@ -161,14 +181,14 @@ if __name__ == '__main__':
 
         # Prepare to run the genetic algorithm
 
-        hw_runs = np.zeros((config['Loops'], config['RUNS'])) # Initialize array to store all HW population runs
-        comp_genome_runs = np.zeros((len(config['BubbleLimits']), config['Loops'], config['RUNS']))  # Initialize array to store all genomes of competent runs
-        comp_phenotype_runs = np.zeros((len(config['BubbleLimits']), config['Loops'], config['RUNS'])) # Initialize array to store all phenotypies of competent runs
+        hw_runs = np.zeros((config['Loops'], config['RUNS']+1)) # Initialize array to store all HW population runs
+        comp_genome_runs = np.zeros((len(config['BubbleLimits']), config['Loops'], config['RUNS']+1))  # Initialize array to store all genomes of competent runs
+        comp_phenotype_runs = np.zeros((len(config['BubbleLimits']), config['Loops'], config['RUNS']+1)) # Initialize array to store all phenotypies of competent runs
 
         hw_runs_collection = {} # dict to store HW genomes
         comp_runs_collection = {} # dict to store competent genomes and phenotypes
 
-        # Basically, we run multiple repeats of the following process: 
+        # Basically, we run multiple repeats of the following process:
         # 1. Evolve a HW population
         # 2. Evolve each competent population
         # 3. Save their results
@@ -180,7 +200,7 @@ if __name__ == '__main__':
             print('**'*10)
             print('\n')
             print('Hardwired Run...')
-            
+
             fits, hw_genome_populations = run_ga(config, HW=True) # Evolve the HW population only
             hw_runs[yu, :] = fits # store the best genomic fitnessess over all generations
             hw_runs_collection[yu] = hw_genome_populations # Store the genomes of the HW population for a particular run
@@ -188,13 +208,13 @@ if __name__ == '__main__':
 
             comp_bubbles_collection = {} # dict to store the genotypes and phenotypes of each competent population
 
-            for k, r in enumerate(config['BubbleLimits']): 
+            for k, r in enumerate(config['BubbleLimits']):
 
                 print('Competency run: {} bubbles'.format(r))
 
                 config['BubbleLimit'] = r
 
-                cp_gen_fits, cp_cmp_fits, populations_tuple = run_ga(config, HW=False) 
+                cp_gen_fits, cp_cmp_fits, populations_tuple = run_ga(config, HW=False)
                 comp_genome_runs[k, yu, :], comp_phenotype_runs[k, yu, :] = cp_gen_fits, cp_cmp_fits # Store the genomic fitness, phenotypic fitness of a specific competent population
 
                 comp_bubbles_collection[r] = populations_tuple # Store the pre-swap and post swap genomes tuple of each competent population
@@ -210,12 +230,12 @@ if __name__ == '__main__':
 
         np.save(os.path.join(SAVE_DIR, 'hwBubbleSort'), hw_runs)
         np.save(os.path.join(SAVE_DIR, 'compGenomeBubbleSort'), comp_genome_runs)
-        np.save(os.path.join(SAVE_DIR, 'compPhenotypeBubbleSort'), comp_phenotype_runs) 
+        np.save(os.path.join(SAVE_DIR, 'compPhenotypeBubbleSort'), comp_phenotype_runs)
         np.save(os.path.join(SAVE_DIR, 'hwPopulations'), hw_runs_collection)
         np.save(os.path.join(SAVE_DIR, 'compPopulationsGC'), comp_runs_collection)
 
-        plot_all(config['BubbleLimits'], N_repeats=config['Loops'], N_generations=config['RUNS']) 
+        plot_all(config['BubbleLimits'], N_repeats=config['Loops'], N_generations=config['RUNS'])
 
     else:
 
-        plot_all(config['BubbleLimits'], N_repeats=config['Loops'], N_generations=config['RUNS']) 
+        plot_all(config['BubbleLimits'], N_repeats=config['Loops'], N_generations=config['RUNS'])
