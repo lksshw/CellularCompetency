@@ -311,7 +311,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Gene Evolution Experiment')
     parser.add_argument('--simulate', type=bool, default=False, help='Set True to run the experiment from scratch. If False, a plot is produced from saved data')
     parser.add_argument('--hfile', type = str, default='./hyperparameters.json')
-    parser.add_argument('--savedir', type = str, default='./EvolvableCompetencyResults/', help = 'path to folder containing saved data (if plot), else, it indicates the destination to save simulated data')
+    parser.add_argument('--savedir', type = str, default='./EvolvableCompetencyHyperprmtrResults/', help = 'path to folder containing saved data (if plot), else, it indicates the destination to save simulated data')
     parser.add_argument('--plotType', type=str, default='fitness', choices = ['fitness', 'frequency'],  help='Set True to run the experiment from scratch. If False, a plot is produced from saved data')
 
 
@@ -329,6 +329,7 @@ if __name__ == '__main__':
         config_data = json.load(f)
 
     config = config_data[EXP_TYPE]
+    config['Loops'] = 1
 
     stringency_list = np.linspace(0.1, 0.9, N_VALUES)
     mutprob_list = np.linspace(0.1, 1.0, N_VALUES)
