@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import gc
 import sys
 import json
 import argparse
@@ -85,26 +86,21 @@ def plot_all(rns, binned=False):
     fig, (ax2, ax1, ax3) = plt.subplots(3, 1, figsize =(8, 12))
 
     try:
-        hw_runs = np.load(os.path.join(SAVE_DIR, 'GenotypicFitness.npy'))
-        comp_runs = np.load(os.path.join(SAVE_DIR, 'PhenotypicFitness.npy'))
-        gene_tracker = np.load(os.path.join(SAVE_DIR, 'CompetencyGeneValue.npy'))
-        low_genetracker_bubble = np.load(os.path.join(SAVE_DIR, 'MinCompGeneValue.npy'))
-        high_genetracker_bubble = np.load(os.path.join(SAVE_DIR, 'MaxCompGeneValue.npy'))
+        hw_runs = np.loadtxt(os.path.join(SAVE_DIR, 'GenotypicFitness.txt')).reshape(len(total_list), config['Loops'], config['RUNS'])
+        comp_runs = np.loadtxt(os.path.join(SAVE_DIR, 'PhenotypicFitness.txt')).reshape(len(total_list), config['Loops'], config['RUNS'])
+        gene_tracker = np.loadtxt(os.path.join(SAVE_DIR, 'CompetencyGeneValue.txt')).reshape(len(total_list), config['Loops'], config['RUNS'])
+        low_genetracker_bubble = np.loadtxt(os.path.join(SAVE_DIR, 'MinCompGeneValue.txt')).reshape(len(total_list), config['Loops'], config['RUNS'])
+        high_genetracker_bubble = np.loadtxt(os.path.join(SAVE_DIR, 'MaxCompGeneValue.txt')).reshape(len(total_list), config['Loops'], config['RUNS'])
+
 
     except FileNotFoundError:
         raise Exception('Save files not found')
 
-    hw_runs = hw_runs[:rns, :]
-    comp_runs = comp_runs[:rns, :]
-    gene_tracker = gene_tracker[:rns, :]
-    low_genetracker_bubble = low_genetracker_bubble[:rns, :]
-    high_genetracker_bubble = high_genetracker_bubble[:rns, :]
-
-    hw_mean = np.mean(hw_runs, axis =0)
-    comp_mean = np.mean(comp_runs, axis =0)
-    gene_mean = np.mean(gene_tracker, axis = 0)
-    low_gene = np.mean(low_genetracker_bubble, axis = 0)
-    high_gene = np.mean(high_genetracker_bubble, axis =0)
+    hw_mean = np.mean(hw_runs[0, :, :], axis =0)
+    comp_mean = np.mean(comp_runs[0, :, :], axis =0)
+    gene_mean = np.mean(gene_tracker[0, :, :], axis = 0)
+    low_gene = np.mean(low_genetracker_bubble[0, :, :], axis = 0)
+    high_gene = np.mean(high_genetracker_bubble[0, :, :], axis =0)
 
     hw_mean_splits = np.split(hw_mean, config['RUNS']//10)
     comp_mean_splits = np.split(comp_mean, config['RUNS']//10)
@@ -114,13 +110,13 @@ def plot_all(rns, binned=False):
 
     corrs = np.array([np.corrcoef(i, j)[0,1] for i, j in zip(hw_mean_splits, comp_mean_splits)])
 
-    m_hw = np.mean(hw_runs, axis = 0)
-    var_hw = np.std(hw_runs, axis = 0)/np.sqrt(config['Loops'])
+    m_hw = np.mean(hw_runs[0,:, :], axis = 0)
+    var_hw = np.std(hw_runs[0, :, :], axis = 0)/np.sqrt(config['Loops'])
     ax1.plot(range(1, config['RUNS']+1), m_hw, label='Genotypic Fitness')
     ax1.fill_between(range(1, config['RUNS']+1), m_hw-2*var_hw, m_hw+2*var_hw, alpha = 0.2)
 
-    m_comp = np.mean(comp_runs, axis = 0)
-    var_comp = np.std(comp_runs, axis = 0)/np.sqrt(config['Loops'])
+    m_comp = np.mean(comp_runs[0, :, :], axis = 0)
+    var_comp = np.std(comp_runs[0, :, :], axis = 0)/np.sqrt(config['Loops'])
     ax1.plot(range(1, config['RUNS']+1), m_comp, label = 'Phenotypic Fitness')
     ax1.fill_between(range(1, config['RUNS']+1), m_comp-2*var_comp, m_comp + 2*var_comp, alpha = 0.2)
 
@@ -137,7 +133,7 @@ def plot_all(rns, binned=False):
         ax2.set_xticks(ticks = np.arange(0, 120, 20), labels = ['0', '200', '400', '600', '800', '1000'])
 
     else:
-        m_comp = np.mean(gene_tracker, axis = 0)
+        m_comp = np.mean(gene_tracker[0,:, :], axis = 0)
         ax2.plot(range(1, config['RUNS']+1), m_comp, label = 'Gene Value of the Best Individual', color = 'green')
         ax2.fill_between(range(1, config['RUNS']+1), m_comp-low_gene_mean, high_gene_mean, alpha = 0.2, label = 'Range of gene values')
         ax2.set_xticks(ticks = np.arange(0, 120, 20), labels = ['0', '200', '400', '600', '800', '1000'])
@@ -172,7 +168,6 @@ def get_max(orgs, config):
     return best_indv.reshape(1,-1)
 
 def plotGeneChangeFrequency(config):
-
     hw_pop = np.load(os.path.join(SAVE_DIR, 'Genomes.npy'), allow_pickle=True)
     record_str = np.zeros((config['Loops'], config['RUNS']))
     record_func = np.zeros((config['Loops'], config['RUNS']))
@@ -235,11 +230,14 @@ def plot_topo():
     sns.set_theme(style = "darkgrid")
     sns.set_palette(sns.color_palette())
 
-    hw_runs = np.load(os.path.join(SAVE_DIR, 'GenotypicFitness.npy'))
-    comp_runs = np.load(os.path.join(SAVE_DIR, 'PhenotypicFitness.npy'))
-    gene_tracker = np.load(os.path.join(SAVE_DIR, 'CompetencyGeneValue.npy'))
-    low_genetracker_bubble = np.load(os.path.join(SAVE_DIR, 'MinCompGeneValue.npy'))
-    high_genetracker_bubble = np.load(os.path.join(SAVE_DIR, 'MaxCompGeneValue.npy'))
+    hw_runs = np.loadtxt(os.path.join(SAVE_DIR, 'GenotypicFitness.txt')).reshape(len(total_list), config['Loops'], config['RUNS'])
+    comp_runs = np.loadtxt(os.path.join(SAVE_DIR, 'PhenotypicFitness.txt')).reshape(len(total_list), config['Loops'], config['RUNS'])
+    gene_tracker = np.loadtxt(os.path.join(SAVE_DIR, 'CompetencyGeneValue.txt')).reshape(len(total_list), config['Loops'], config['RUNS'])
+    low_genetracker_bubble = np.loadtxt(os.path.join(SAVE_DIR, 'MinCompGeneValue.txt')).reshape(len(total_list), config['Loops'], config['RUNS'])
+    high_genetracker_bubble = np.loadtxt(os.path.join(SAVE_DIR, 'MaxCompGeneValue.txt')).reshape(len(total_list), config['Loops'], config['RUNS'])
+
+    print(hw_runs.shape)
+
 
     hw_mean = np.mean(hw_runs, axis =1)
     comp_mean = np.mean(comp_runs, axis =1)
@@ -285,7 +283,7 @@ def plot_topo():
 
     sns.set_palette(sns.color_palette())
     ax = fig.add_subplot(2,1,2, projection='3d')
-    ax.scatter3D(xvals, yvals, st_gene_list, c=sns.color_palette(n_colors=9))
+    ax.scatter3D(xvals, yvals, st_gene_list, c=sns.color_palette(n_colors=N_VALUES**2))
     ax.set_xlabel('Stringency')
     ax.set_ylabel('Mutation_probability')
     ax.set_zlabel('Stable Gene Value of the Best Individual')
@@ -338,21 +336,24 @@ if __name__ == '__main__':
 
     if args.simulate:
 
+        if not os.path.exists(SAVE_DIR):
+            os.makedirs(SAVE_DIR)
+
         # Initialize and Run
 
         # Note: This experiment involved the competency population only. Instead of having a fixed competency, we define a competency gene and allow it to be changed by evolution
 
-        hw_runs = np.zeros((len(total_list), config['Loops'], config['RUNS']))                       # Stores Genomic fitness of the best individual from a competent population
-        comp_runs = np.zeros((len(total_list), config['Loops'], config['RUNS']))                       # Stores Genomic fitness of the best individual from a competent population
+        with open(os.path.join(SAVE_DIR, 'GenotypicFitness.txt'), 'w') as F:
+            F.write('')
+        with open(os.path.join(SAVE_DIR, 'PhenotypicFitness.txt'), 'w') as F:
+            F.write('')
+        with open(os.path.join(SAVE_DIR, 'CompetencyGeneValue.txt'), 'w') as F:
+            F.write('')
+        with open(os.path.join(SAVE_DIR, 'MinCompGeneValue.txt'), 'w') as F:
+            F.write('')
+        with open(os.path.join(SAVE_DIR, 'MaxCompGeneValue.txt'), 'w') as F:
+            F.write('')
 
-        bubble_genetracker = np.zeros((len(total_list), config['Loops'], config['RUNS']))                       # Stores Genomic fitness of the best individual from a competent population
-
-        low_bubble_genetracker = np.zeros((len(total_list), config['Loops'], config['RUNS']))                       # Stores Genomic fitness of the best individual from a competent population
-
-        high_bubble_genetracker = np.zeros((len(total_list), config['Loops'], config['RUNS']))                       # Stores Genomic fitness of the best individual from a competent population
-
-        hw_ind_pop = {}     # dictionary to store genomes of a competent population in every generation
-        comp_ind_pop = {}   # dictionary to store post_swapped genes of a competent population
 
         for pircnts, uval in enumerate(total_list):
             print('---'*10)
@@ -371,34 +372,23 @@ if __name__ == '__main__':
 
                 fits, gtrck, compfits, low_gtrck, high_gtrck, population_collections = run_ga(config, HW=False) # Run one instance of the genetic algorithm with our settings
 
-                hw_runs[pircnts, yu, :] = fits            # Store the best genomic fitnessess for all generations
-                comp_runs[pircnts, yu, :] = compfits      # Store the best post-swapped fitnessess for all generations
-
-                bubble_genetracker[pircnts, yu, :] = gtrck           # Store the gene-values of the best individual in every generations
-                low_bubble_genetracker[pircnts, yu, :] = low_gtrck   # Store the lowest gene-vale for every generation
-                high_bubble_genetracker[pircnts, yu, :] = high_gtrck # Store the highest gene-value for every generation
-
-                hw_pop[yu] = population_collections[0]     # Store the genomes of a population (for all generations)
-                comp_pop[yu] = population_collections[1]   # Sore the post-swapped genomes of a population (for all generations)
-
-            hw_ind_pop[pircnts] = hw_pop
-            comp_ind_pop[pircnts] = comp_pop
+                with open(os.path.join(SAVE_DIR, 'GenotypicFitness.txt'), 'a') as F:
+                    np.savetxt(F, fits)
+                with open(os.path.join(SAVE_DIR, 'PhenotypicFitness.txt'), 'a') as F:
+                    np.savetxt(F, compfits)
+                with open(os.path.join(SAVE_DIR, 'CompetencyGeneValue.txt'), 'a') as F:
+                    np.savetxt(F, gtrck)
+                with open(os.path.join(SAVE_DIR, 'MinCompGeneValue.txt'), 'a') as F:
+                    np.savetxt(F, low_gtrck)
+                with open(os.path.join(SAVE_DIR, 'MaxCompGeneValue.txt'), 'a') as F:
+                    np.savetxt(F, high_gtrck)
 
 
-        print('Saving...')
+                del fits, gtrck, compfits, low_gtrck, high_gtrck, population_collections
+                gc.collect()
 
-        if not os.path.exists(SAVE_DIR):
-            os.makedirs(SAVE_DIR)
 
-        np.save(os.path.join(SAVE_DIR, 'GenotypicFitness'), hw_runs)
-        np.save(os.path.join(SAVE_DIR, 'PhenotypicFitness'), comp_runs)
-
-        np.save(os.path.join(SAVE_DIR, 'CompetencyGeneValue'), bubble_genetracker)
-        np.save(os.path.join(SAVE_DIR, 'MinCompGeneValue'), low_bubble_genetracker)
-        np.save(os.path.join(SAVE_DIR, 'MaxCompGeneValue'), high_bubble_genetracker)
-
-        np.save(os.path.join(SAVE_DIR, 'Genomes'), hw_ind_pop)
-        np.save(os.path.join(SAVE_DIR, 'PostSwappedGenomes'), comp_ind_pop)
+            print('Saving...')
 
         print('Plotting...')
 
@@ -414,14 +404,15 @@ if __name__ == '__main__':
 
     else:
 
-        plot_topo()
+        #plot_topo()
 
         print('Plotting...')
 
-#         if args.plotType == 'fitness':
+        if args.plotType == 'fitness':
 
-#             plot_all(rns = config['Loops'], binned=True)
+            plot_all(rns = config['Loops'], binned=True)
 
-#         else:
+        else:
+            print('test')
 
 #lotGeneChangeFrequency(config)

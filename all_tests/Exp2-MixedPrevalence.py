@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import gc
 import json
 import argparse
 import numpy as np
@@ -96,37 +97,38 @@ def plot(config, minorityFlag):
     # Plotting is possible only if simulated data is saved in the --savedir folder
 
     if minorityFlag:
+        print('testing')
 
-        # Plot for Minority Experiment
+        # # Plot for Minority Experiment
 
-        try:
-            preva_hw = np.load(os.path.join(SAVE_DIR, 'Exp2a-hw_prevalence.npy'))
-            preva_comp = np.load(os.path.join(SAVE_DIR, 'Exp2a-comp_prevalence.npy'))
+        # try:
+        #     preva_hw = np.load(os.path.join(SAVE_DIR, 'Exp2a-hw_prevalence.npy'))
+        #     preva_comp = np.load(os.path.join(SAVE_DIR, 'Exp2a-comp_prevalence.npy'))
 
-        except FileNotFoundError:
-            raise Exception('Save file for minority-Experiment not found')
+        # except FileNotFoundError:
+        #     raise Exception('Save file for minority-Experiment not found')
 
-        colors = ['crimson', 'olivedrab', 'teal', 'slateblue', 'orange', 'dimgrey']
+        # colors = ['crimson', 'olivedrab', 'teal', 'slateblue', 'orange', 'dimgrey']
 
-        for bidx, b in enumerate(config['BubbleLimits']):
-            mr_hw = np.mean(preva_hw[bidx, :, :], axis=0)
-            vr_hw = np.std(preva_hw[bidx, : , :], axis =0)/np.sqrt(config['Loops'])
+        # for bidx, b in enumerate(config['BubbleLimits']):
+        #     mr_hw = np.mean(preva_hw[bidx, :, :], axis=0)
+        #     vr_hw = np.std(preva_hw[bidx, : , :], axis =0)/np.sqrt(config['Loops'])
 
-            plt.plot(np.arange(1, config['RUNS']+1), mr_hw, linestyle='--', linewidth=2.0, color=colors[bidx], label = 'Hardwired Population')
-            plt.fill_between(np.arange(1,config['RUNS']+1), mr_hw-1*vr_hw, mr_hw+1*vr_hw, alpha =0.2, color = colors[bidx])
+        #     plt.plot(np.arange(1, config['RUNS']+1), mr_hw, linestyle='--', linewidth=2.0, color=colors[bidx], label = 'Hardwired Population')
+        #     plt.fill_between(np.arange(1,config['RUNS']+1), mr_hw-1*vr_hw, mr_hw+1*vr_hw, alpha =0.2, color = colors[bidx])
 
-            mr_cmp = np.mean(preva_comp[bidx, : , :], axis = 0)
-            vr_cmp = np.std(preva_comp[bidx, :, :], axis = 0)/np.sqrt(config['Loops'])
+        #     mr_cmp = np.mean(preva_comp[bidx, : , :], axis = 0)
+        #     vr_cmp = np.std(preva_comp[bidx, :, :], axis = 0)/np.sqrt(config['Loops'])
 
-            plt.plot(np.arange(1, config['RUNS']+1), mr_cmp, linewidth=2.5, color=colors[bidx], label = 'Competent Population [Level {}]'.format(b))
-            plt.fill_between(np.arange(1, config['RUNS']+1), mr_cmp-1*vr_cmp, mr_cmp+1*vr_cmp, alpha =0.2, color = colors[bidx])
+        #     plt.plot(np.arange(1, config['RUNS']+1), mr_cmp, linewidth=2.5, color=colors[bidx], label = 'Competent Population [Level {}]'.format(b))
+        #     plt.fill_between(np.arange(1, config['RUNS']+1), mr_cmp-1*vr_cmp, mr_cmp+1*vr_cmp, alpha =0.2, color = colors[bidx])
 
 
-        plt.xlabel('Generation')
-        plt.ylabel("Percentage of Individuals (%)")
-        plt.tight_layout()
-        plt.legend(loc = 'lower right')
-        plt.savefig(os.path.join(SAVE_DIR, 'Exp2a'), dpi=300)
+        # plt.xlabel('Generation')
+        # plt.ylabel("Percentage of Individuals (%)")
+        # plt.tight_layout()
+        # plt.legend(loc = 'lower right')
+        # plt.savefig(os.path.join(SAVE_DIR, 'Exp2a'), dpi=300)
 
 
     else:
@@ -137,8 +139,8 @@ def plot(config, minorityFlag):
         row, col = 0,0
 
         try:
-            preva_hw = np.load(os.path.join(SAVE_DIR, './hw.npy'))
-            preva_comp = np.load(os.path.join(SAVE_DIR, './comp.npy'))
+            preva_hw = np.loadtxt(os.path.join(SAVE_DIR, 'hw.txt')).reshape(len(config['BubbleLimits']), len(config['N_hw']), config['Loops'], config['RUNS'])
+            preva_comp = np.loadtxt(os.path.join(SAVE_DIR, 'comp.txt')).reshape(len(config['BubbleLimits']), len(config['N_hw']), config['Loops'], config['RUNS'])
 
         except FileNotFoundError:
             raise Exception('Save file not found for mixed population experiment')
@@ -148,11 +150,11 @@ def plot(config, minorityFlag):
 
             for idx, (i, j) in enumerate(zip(config['N_hw'], config['N_comp'])):
 
-                mr_hw = np.mean(preva_hw[nb, idx, :, :], axis=1)
-                vr_hw = np.std(preva_hw[nb, idx, :, :], axis =1)/np.sqrt(config['Loops'])
+                mr_hw = np.mean(preva_hw[nb, idx, :, :], axis=0)
+                vr_hw = np.std(preva_hw[nb, idx, :, :], axis =0)/np.sqrt(config['Loops'])
 
-                mr_cmp = np.mean(preva_comp[nb, idx, :, :], axis = 1)
-                vr_cmp = np.std(preva_comp[nb, idx, :, :], axis = 1)/np.sqrt(config['Loops'])
+                mr_cmp = np.mean(preva_comp[nb, idx, :, :], axis = 0)
+                vr_cmp = np.std(preva_comp[nb, idx, :, :], axis = 0)/np.sqrt(config['Loops'])
 
                 htrace, = axs[row,col].plot(range(1, config['RUNS']+1), mr_hw)
                 axs[row, col].fill_between(range(1,config['RUNS']+1), mr_hw-1*vr_hw, mr_hw+1*vr_hw, alpha =0.2)
@@ -216,37 +218,39 @@ if __name__ == "__main__":
     if args.simulate:
 
         if args.minorityExp: # Minority experiment 2
+            print('Testing')
 
-            preva_hw = np.zeros((len(config['BubbleLimits']),config['Loops'], config['RUNS']))
-            preva_comp = np.zeros((len(config['BubbleLimits']), config['Loops'], config['RUNS']))
+            # preva_hw = np.zeros((len(config['BubbleLimits']),config['Loops'], config['RUNS']))
+            # preva_comp = np.zeros((len(config['BubbleLimits']), config['Loops'], config['RUNS']))
 
-            for bidx, b in enumerate(config['BubbleLimits']):
+            # for bidx, b in enumerate(config['BubbleLimits']):
 
-                print('Running for Competency Level {}\n'.format(config['BubbleLimits'][bidx]))
+            #     print('Running for Competency Level {}\n'.format(config['BubbleLimits'][bidx]))
 
-                config['BubbleLimit'] = b
-                cfs = HelperFuncs(config)
-                run1 = MixedFit(config, cfs, n_hw = config['N_hw'], n_comp = config['N_comp'])
+            #     config['BubbleLimit'] = b
+            #     cfs = HelperFuncs(config)
+            #     run1 = MixedFit(config, cfs, n_hw = config['N_hw'], n_comp = config['N_comp'])
 
-                for r in range(config['Loops']):
+            #     for r in range(config['Loops']):
 
-                    _, prevalence_counts  = run1.run_ga()
+            #         _, prevalence_counts  = run1.run_ga()
 
-                    preva_hw[bidx, r] = [hw for hw, _ in prevalence_counts]
-                    preva_comp[bidx, r] = [comp for _, comp in prevalence_counts]
+            #         preva_hw[bidx, r] = [hw for hw, _ in prevalence_counts]
+            #         preva_comp[bidx, r] = [comp for _, comp in prevalence_counts]
 
-            print('Saving....\n')
+            # print('Saving....\n')
 
-            if not os.path.exists(SAVE_DIR):
-                os.makedirs(SAVE_DIR)
+            # if not os.path.exists(SAVE_DIR):
+            #     os.makedirs(SAVE_DIR)
 
-            np.save(os.path.join(SAVE_DIR, 'Exp2a-hw_prevalence'), preva_hw)
-            np.save(os.path.join(SAVE_DIR, 'Exp2a-comp_prevalence'), preva_comp)
+            # np.save(os.path.join(SAVE_DIR, 'Exp2a-hw_prevalence'), preva_hw)
+            # np.save(os.path.join(SAVE_DIR, 'Exp2a-comp_prevalence'), preva_comp)
 
-            print('Plotting...')
-            plot(config, args.minorityExp)
+            # print('Plotting...')
+            # plot(config, args.minorityExp)
 
         else:
+
             # Minority Experiment 1
             # Sanity check to ensure that the sum of N_hw + N_competent = Number of total organisms, in each of the mixture cases (see hyperparameter.json)
 
@@ -254,9 +258,19 @@ if __name__ == "__main__":
                 if i+j != config['N_organisms']:
                     raise Exception("Number of Hardwired and Competent don't match the population size. Check your hyperparameters")
 
+            if not os.path.exists(SAVE_DIR):
+                os.makedirs(SAVE_DIR)
 
-            preva_hw = np.zeros((len(config['BubbleLimits']), len(config['N_hw']), config['RUNS'], config['Loops']))        # create array to store simulations for every competency level, every mixture ratio, and every repeat
-            preva_comp = np.zeros((len(config['BubbleLimits']), len(config['N_comp']), config['RUNS'], config['Loops']))    # create array to store simulations for every competency level, every mixture ratio, and every repeat
+
+            with open(os.path.join(SAVE_DIR, 'hw.txt'), 'w') as F:
+                F.write('')
+
+            with open(os.path.join(SAVE_DIR, 'comp.txt'), 'w') as F:
+                F.write('')
+
+
+            #preva_hw = np.zeros((len(config['BubbleLimits']), len(config['N_hw']), config['RUNS'], config['Loops']))        # create array to store simulations for every competency level, every mixture ratio, and every repeat
+            #preva_comp = np.zeros((len(config['BubbleLimits']), len(config['N_comp']), config['RUNS'], config['Loops']))    # create array to store simulations for every competency level, every mixture ratio, and every repeat
 
             print('Hyperparameters look good \n Starting Mixed Experiment...')
 
@@ -284,15 +298,17 @@ if __name__ == "__main__":
 
                         # store results
 
-                        preva_hw[bn, idx, :, r] = [hw for hw, _ in all_cnts]
-                        preva_comp[bn, idx, :, r] = [comp for _, comp in all_cnts]
+                        with open(os.path.join(SAVE_DIR, 'hw.txt'), 'a') as F:
+                            np.savetxt(F, np.array([hw for hw, _ in all_cnts]))
 
-            if not os.path.exists(SAVE_DIR):
-                os.makedirs(SAVE_DIR)
+                        with open(os.path.join(SAVE_DIR, 'comp.txt'), 'a') as F:
+                            np.savetxt(F, np.array([comp for _, comp in all_cnts]))
 
-            # save results in .npy files
-            np.save(os.path.join(SAVE_DIR, './hw'), preva_hw)
-            np.save(os.path.join(SAVE_DIR, './comp'), preva_comp)
+                        del te_buff
+                        del all_cnts
+                        del run1
+                        gc.collect()
+
 
             #plot
             print('Plotting...')

@@ -9,7 +9,7 @@
         "Mutation_Probability" : 0.6,
         "ExpFitness": "False",
         "BubbleLimits": [20, 100, 400],
-        "Loops": 300
+        "Loops": 100
                         },
 
     "mixed_population" : {
